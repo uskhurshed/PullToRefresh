@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="50dp">
 
@@ -13,18 +13,12 @@
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/scroll_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#9F2C2C"
-            android:orientation="vertical">
+            android:orientation="vertical" />
 
-            <!-- Ваш основной контент -->
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="200dp" />
-
-        </LinearLayout>
     </com.easyapps.pulltorefresh.CustomRefreshScrollView>
+
 
 </LinearLayout>
