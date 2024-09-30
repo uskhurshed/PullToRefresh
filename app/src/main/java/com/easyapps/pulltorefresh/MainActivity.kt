@@ -4,13 +4,13 @@ import android.animation.ValueAnimator
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View.MeasureSpec
 import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.easyapps.pulltorefresh.databinding.ActivityMainBinding
 import kotlin.math.min
 
@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    if (binding.header.layoutParams.height >= binding.header.tag as Int) triggerRefresh()
+                    if (binding.header.layoutParams.height >= binding.header.tag as Int && !binding.scrollableContent.isSelected && binding.motionBase.currentState == R.id.startScene && lastState == R.id.startScene) triggerRefresh()
                     else resetHeaderPosition()
 
                 }
@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-
+SwipeRefreshLayout(this)
     }
 
     private fun triggerRefresh() {
