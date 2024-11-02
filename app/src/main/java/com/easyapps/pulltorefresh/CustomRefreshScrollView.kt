@@ -8,28 +8,23 @@ import android.view.View
 import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
 import androidx.core.widget.NestedScrollView
-import kotlin.math.abs
 import kotlin.math.min
 
-class CustomRefreshScrollView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : NestedScrollView(context, attrs, defStyleAttr) {
+class CustomRefreshScrollView @JvmOverloads constructor(
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+) : NestedScrollView(context, attrs, defStyleAttr) {
 
     private var isRefreshing = false
     private var refreshListener: (() -> Unit)? = null
     private var headerView: View? = null
-    private val overshootInterpolator = OvershootInterpolator()
+    private val overshootInterpolator = OvershootInterpolator(2f) // Высокое значение для "bounce"
     private var initialY = 0f
     private var isDragging = false
     private var headerOriginalHeight = 0
 
-    private var xDistance = 0f
-    private var yDistance = 0f
-    private var lastX = 0f
-    private var lastY = 0f
-
     init {
         overScrollMode = OVER_SCROLL_NEVER
     }
-
 
     fun setHeaderView(header: View) {
         val container = getChildAt(0) as? LinearLayout
@@ -57,7 +52,7 @@ class CustomRefreshScrollView @JvmOverloads constructor(context: Context, attrs:
                 val deltaY = ev.y - initialY
                 if (scrollY == 0 && deltaY > 0 && !isRefreshing) {
                     headerView?.let {
-                        val newHeight = min(deltaY.toInt() / 2, headerOriginalHeight)
+                        val newHeight = min(deltaY.toInt() / 2, headerOriginalHeight * 2) // Ограничиваем растяжение
                         it.layoutParams.height = newHeight
                         it.requestLayout()
                     }
@@ -80,6 +75,16 @@ class CustomRefreshScrollView @JvmOverloads constructor(context: Context, attrs:
         isRefreshing = true
         refreshListener?.invoke()
 
+        headerView?.let { header ->
+            // Устанавливаем полную высоту header и запускаем анимацию
+            header.layoutParams.height = headerOriginalHeight
+            header.alpha = 0f // Начинаем с прозрачного
+            header.animate()
+                .alpha(1f) // Плавно увеличиваем альфа
+                .setDuration(300)
+                .setInterpolator(overshootInterpolator)
+                .start()
+        }
     }
 
     fun finishRefreshing() {
@@ -91,8 +96,8 @@ class CustomRefreshScrollView @JvmOverloads constructor(context: Context, attrs:
         headerView?.let { header ->
             val currentHeight = header.layoutParams.height
             val animator = ValueAnimator.ofInt(currentHeight, 0)
-            animator.duration = 300
-            animator.interpolator = overshootInterpolator
+            animator.duration = 500
+            animator.interpolator = overshootInterpolator // Bounce эффект
 
             animator.addUpdateListener { animation ->
                 val animatedValue = (animation.animatedValue as Int).coerceAtLeast(0)
@@ -110,23 +115,8 @@ class CustomRefreshScrollView @JvmOverloads constructor(context: Context, attrs:
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        when (ev.action) {
-            MotionEvent.ACTION_DOWN -> {
-                xDistance = 0f
-                yDistance = 0f
-                lastX = ev.x
-                lastY = ev.y
-            }
-            MotionEvent.ACTION_MOVE -> {
-                val curX = ev.x
-                val curY = ev.y
-                xDistance += abs(curX - lastX)
-                yDistance += abs(curY - lastY)
-                lastX = curX
-                lastY = curY
-                if (xDistance > yDistance) return false
-            }
-        }
+        if (isRefreshing) return false
+
         return super.onInterceptTouchEvent(ev)
     }
 }

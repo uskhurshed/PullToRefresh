@@ -18,19 +18,17 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        val scrollView = findViewById<CustomRefreshScrollView>(R.id.customRefreshScrollView)
-        val header = TextView(this)
-        header.text = "Pull to refresh"
-        header.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 500)
+        val scrollView = findViewById<PullDownNestedScrollView>(R.id.customRefreshScrollView)
 
-        scrollView.setHeaderView(header)
+        scrollView.setOnRefreshListener(object : PullDownNestedScrollView.OnRefreshListener {
+            override fun onRefresh() {
+                Toast.makeText(this@MainActivity, "Обновление...", Toast.LENGTH_SHORT).show()
+                Handler(Looper.getMainLooper()).postDelayed({
+                    scrollView.setRefreshing(false) // Завершение обновления
+                }, 2000)
+            }
+        })
 
-        scrollView.setOnRefreshListener {
-            Toast.makeText(this, "Обновление...", Toast.LENGTH_SHORT).show()
-            Handler(Looper.getMainLooper()).postDelayed({
-                scrollView.finishRefreshing()
-            }, 2000)
-        }
 
     }
 }
